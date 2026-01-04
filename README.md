@@ -225,7 +225,3 @@ backend/
 └── README.md
 ```
 
-## License
-
-ISC
-
