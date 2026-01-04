@@ -4,15 +4,35 @@ import { sendSuccess, sendError } from '../utils/response.js';
 export const getAllItems = async (req, res, next) => {
   try {
     const { q } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const maxLimit = 100;
+    const actualLimit = Math.min(limit, maxLimit);
+    const skip = (page - 1) * actualLimit;
+
     let query = {};
 
     if (q) {
       query = { $text: { $search: q } };
     }
 
-    const items = await Item.find(query).sort({ createdAt: -1 });
+    const total = await Item.countDocuments(query);
+    const items = await Item.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(actualLimit);
 
-    sendSuccess(res, items, 'Items retrieved successfully');
+    const totalPages = Math.ceil(total / actualLimit);
+
+    sendSuccess(res, {
+      data: items,
+      pagination: {
+        total,
+        page,
+        limit: actualLimit,
+        totalPages
+      }
+    }, 'Items retrieved successfully');
   } catch (error) {
     next(error);
   }
@@ -91,9 +111,55 @@ export const searchItems = async (req, res, next) => {
       return sendError(res, 'Search query is required', 400);
     }
 
-    const items = await Item.find({ $text: { $search: q } }).sort({ createdAt: -1 });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const maxLimit = 100;
+    const actualLimit = Math.min(limit, maxLimit);
+    const skip = (page - 1) * actualLimit;
 
-    sendSuccess(res, items, 'Search results retrieved successfully');
+    const query = { $text: { $search: q } };
+
+    const total = await Item.countDocuments(query);
+    const items = await Item.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(actualLimit);
+
+    const totalPages = Math.ceil(total / actualLimit);
+
+    sendSuccess(res, {
+      data: items,
+      pagination: {
+        total,
+        page,
+        limit: actualLimit,
+        totalPages
+      }
+    }, 'Search results retrieved successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getItemsList = async (req, res, next) => {
+  try {
+    const { q } = req.query;
+    let query = {};
+
+    if (q) {
+      query = {
+        $or: [
+          { name: { $regex: q, $options: 'i' } },
+          { description: { $regex: q, $options: 'i' } }
+        ]
+      };
+    }
+
+
+    const items = await Item.find(query)
+
+
+    sendSuccess(res, items, 'Items list retrieved successfully');
   } catch (error) {
     next(error);
   }

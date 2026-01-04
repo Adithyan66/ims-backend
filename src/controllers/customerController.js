@@ -135,3 +135,24 @@ export const searchCustomers = async (req, res, next) => {
   }
 };
 
+export const getCustomersList = async (req, res, next) => {
+  try {
+    const { q } = req.query;
+    let query = {};
+
+    if (q) {
+      query = {
+        name: { $regex: q, $options: 'i' }
+      };
+    }
+
+    const customers = await Customer.find(query)
+      .select('_id name')
+      .sort({ name: 1 });
+
+    sendSuccess(res, customers, 'Customers list retrieved successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+

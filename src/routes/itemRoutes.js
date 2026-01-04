@@ -6,7 +6,8 @@ import {
   createItem,
   updateItem,
   deleteItem,
-  searchItems
+  searchItems,
+  getItemsList
 } from '../controllers/itemController.js';
 import { protect } from '../middleware/auth.js';
 import { validate } from '../middleware/validation.js';
@@ -21,6 +22,7 @@ const itemValidation = [
 ];
 
 router.get('/search', searchItems);
+router.get('/list', protect, getItemsList);
 router.get('/', getAllItems);
 router.get('/:id', getItemById);
 router.post('/', protect, itemValidation, validate, createItem);

@@ -6,7 +6,8 @@ import {
   createCustomer,
   updateCustomer,
   deleteCustomer,
-  searchCustomers
+  searchCustomers,
+  getCustomersList
 } from '../controllers/customerController.js';
 import { protect } from '../middleware/auth.js';
 import { validate } from '../middleware/validation.js';
@@ -19,6 +20,7 @@ const customerValidation = [
 ];
 
 router.get('/search', searchCustomers);
+router.get('/list', protect, getCustomersList);
 router.get('/', getAllCustomers);
 router.get('/:id', getCustomerById);
 router.post('/', protect, customerValidation, validate, createCustomer);
